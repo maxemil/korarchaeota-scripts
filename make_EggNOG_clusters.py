@@ -14,8 +14,10 @@ parser.add_argument('-f', '--fasta', type=str,
             help='glob to fasta files containing protein sequences')
 parser.add_argument('-a', '--annotations', type=str,
             help='glob to annotation files from emapper, matching fasta file sequences')
-parser.add_argument('-o', '--outdir', type=str,
-            help='output_directory')
+parser.add_argument('-e', '--outdir_eggnog', type=str,
+            help='output_directory eggnog')
+parser.add_argument('-o', '--outdir_ortho', type=str,
+            help='output_directory orthofinder')
 # parser.add_argument('-s', '--hifix', type=str,
 #             help='location of HiFiX.simg')
 # parser.add_argument('-r', '--references', action='store_true', help="download reference sequences")
@@ -59,9 +61,12 @@ def write_clusters(eggnog_dict, seq_dict, outdir):
     return seq_dict
 
 def write_unlabelled_seqs(seq_dict, outdir):
-    with open('{}/unlabelled_seqs.fasta'.format(outdir), 'w') as out:
-        for seq in list(seq_dict.keys()):
-            SeqIO.write(seq_dict.pop(seq), out, 'fasta')
+    specs = set([seq.split('..')[0] for seq in list(seq_dict.keys())])
+    for spec in specs:
+        with open('{}/{}.noNOG.fasta'.format(outdir, spec), 'w') as out:
+            for seq in list(seq_dict.keys()):
+                if seq.startswith(spec):
+                    SeqIO.write(seq_dict.pop(seq), out, 'fasta')
     return seq_dict
 
 # def cluster_unlabelled_seqs(outdir, hifix):
@@ -90,15 +95,17 @@ def write_unlabelled_seqs(seq_dict, outdir):
 #         shutil.copyfileobj(r.raw, f)
 
 def main(args):
-    if os.path.exists(args.outdir):
-        sys.exit("outdir {} already exists, exiting...".format(args.outdir))
+    if os.path.exists(args.outdir_eggnog) or os.path.exists(args.outdir_ortho):
+        sys.exit("outdir {} or {} already exists, exiting...".format(
+                    args.outdir_eggnog, args.outdir_ortho))
     else:
-        os.makedirs(args.outdir)
+        os.makedirs(args.outdir_eggnog)
+        os.makedirs(args.outdir_ortho)
         # os.makedirs("{}/silix".format(args.outdir))
     eggnog_dict = parse_annotations(args.annotations)
     seq_dict = parse_fasta(args.fasta)
-    seq_dict = write_clusters(eggnog_dict, seq_dict, args.outdir)
-    seq_dict = write_unlabelled_seqs(seq_dict, args.outdir)
+    seq_dict = write_clusters(eggnog_dict, seq_dict, args.outdir_eggnog)
+    seq_dict = write_unlabelled_seqs(seq_dict, args.outdir_ortho)
     assert not seq_dict
     # cluster_unlabelled_seqs(args.outdir, args.hifix)
     # if args.references and not os.path.exists("references"):
