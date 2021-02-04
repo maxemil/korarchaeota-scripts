@@ -15,14 +15,16 @@ process runEMapper {
 
   publishDir "${params.outdir}", mode: 'copy'
   tag {"${fasta.baseName}"}
-  cpus 4
+  cpus 2
 
   script:
   """
   # emapper2
   /local/two/Software/eggnog-mapper2/emapper.py -o ${fasta.simpleName} \
                                                 -i $fasta \
-                                                -m diamond \
-                                                --cpu ${task.cpus}
+                                                -m hmmer \
+                                                -d archaea \
+                                                --cpu ${task.cpus} \
+                                                --tax_scope 2157 
   """
 }
