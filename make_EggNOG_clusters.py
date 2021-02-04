@@ -28,12 +28,12 @@ def find_og(row, taxid):
     oglist = row['eggNOG OGs']
     for og in oglist.split(','):
         if tax_og and og.split('@')[1].startswith(taxid):
-            tax_og = "{};{}".format(tax_og, og.split('@')[0])
+            tax_og = "{}_{}".format(tax_og, og.split('@')[0])
         elif og.split('@')[1].startswith(taxid):
             tax_og = og.split('@')[0]
-    if len(tax_og.split(';')) > 1:
+    if len(tax_og.split('_')) > 1:
         print('multiple ogs for {} at tax_id: {}'.format(row.name, oglist))
-        return None
+        return tax_og
     return tax_og
 
 def parse_annotations(annotations):
