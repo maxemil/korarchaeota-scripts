@@ -5,10 +5,6 @@ params.output_trees = "trees"
 
 cluster = Channel.fromPath(params.cluster)
 
-
-params.alignments = ""
-mafft_alignments = Channel.fromPath(params.alignments)
-
 process sortClustersBySize {
   input:
   file faa from cluster
@@ -60,12 +56,12 @@ process alignSequences {
 
   tag {"${faa.simpleName}"}
   cpus 6
-  publishDir "alignments", mode: 'copy'
+    publishDir "${params.output_alignments}", mode: 'copy'
 
   script:
   """
   mafft-einsi --anysymbol --thread ${task.cpus} $faa > ${faa.simpleName}.aln
-  trimal -in ${faa.simpleName}.aln -out${faa.simpleName}.99.aln -gt 0.01
+  trimal -in ${faa.simpleName}.aln -out ${faa.simpleName}.99.aln -gt 0.01
   """
 }
 
